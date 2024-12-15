@@ -1,0 +1,10 @@
+Step:
+1. Smooth the flow of fetching data.
+2. Correct the model
+3. for every pattern length, compute the weight for the best accuracy (like NN)
+4. Compute the best tolerance
+6. Class the decision into BUY, SELL, NONE
+5. Create API to get the decision
+6. Create interface to get the decision
+7. Automate data update
+8. Try using different data (use volume based data)
