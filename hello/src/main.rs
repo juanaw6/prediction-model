@@ -8,8 +8,7 @@ use rayon::prelude::*;
 
 #[derive(Debug, Deserialize)]
 struct Record {
-    open: f64,
-    close: f64,
+    changes: f64
 }
 
 // Optimized tolerance computation using iterators
@@ -106,29 +105,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let file = File::open("../futures_data.csv")?;
     let mut rdr = ReaderBuilder::new().from_reader(BufReader::new(file));
 
-    // Pre-allocate with capacity for efficiency
-    let mut open_prices = Vec::with_capacity(100000);
-    let mut close_prices = Vec::with_capacity(100000);
-
+    let mut changes: Vec<f64> = Vec::new();
     // Efficient deserialization
     for result in rdr.deserialize() {
         let record: Record = result?;
-        open_prices.push(record.open);
-        close_prices.push(record.close);
+        changes.push(record.changes);
     }
-
-    // Compute price changes with a single allocation
-    let changes: Vec<f64> = close_prices.iter()
-        .zip(open_prices.iter())
-        .map(|(&c, &o)| ((c - o) / o) * 100.0)
-        .collect();
 
     // Adjust these values as needed
     let min_length = 3;
     let max_length = 9;
 
     // Perform analysis
-    let (actions, total_score) = determine_action(&changes, min_length, max_length);
+    let (_actions, total_score) = determine_action(&changes, min_length, max_length);
     let tolerance = compute_tolerance(&changes, 0.3);
     println!("Tolerance: {}", tolerance);
 
