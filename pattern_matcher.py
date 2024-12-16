@@ -53,11 +53,11 @@ class BadCharRangeTable():
                 return self.last_occurrence[range_.val]
         return default
 
-def get_sublists(lst, min_length=3, max_length=5):
+def get_sublists(lst, min_length=3, max_length=10):
     sublists = [lst[:i+min_length] for i in range(max_length - min_length + 1)]
     return sublists
 
-def compute_tolerance(changes, factor=0.5):
+def compute_tolerance(changes, factor=0.4):
     std_dev = np.std(changes)
     tolerance = std_dev * factor
     return tolerance

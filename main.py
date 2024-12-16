@@ -14,7 +14,7 @@ fetcher = BinanceDataFetcher(api_key=api_key, api_secret=api_secret)
 # Retrieval Params
 symbol = "BTCUSDT"
 interval = '5m'
-start_date = '2024-12-16 08:00:00'
+start_date = '2024-01-01 00:00:00'
 end_date = '2024-12-16 16:00:00'
 csv_filepath = 'data_fetched.csv'
 
