@@ -13,8 +13,8 @@ struct Record {
 
 // Optimized tolerance computation using iterators
 fn compute_tolerance(changes: &[f64], factor: f64) -> f64 {
-    let n = changes.len() as f64;
-    let mean = changes.iter().sum::<f64>() / n;
+    let n: f64 = changes.len() as f64;
+    let mean: f64 = changes.iter().sum::<f64>() / n;
     let variance = changes.iter()
         .map(|&x| (x - mean).powi(2))
         .sum::<f64>() / n;

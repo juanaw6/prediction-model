@@ -1,0 +1,267 @@
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+
+use serde::Deserialize;
+use csv::ReaderBuilder;
+use rayon::prelude::*;
+use linfa::prelude::*;
+use linfa_linear::LinearRegression;
+use ndarray::{Array1, Array2};
+use ndarray_rand::RandomExt;
+use ndarray_rand::rand_distr::Uniform;
+
+#[derive(Debug, Deserialize)]
+struct Record {
+    open: f64,
+    close: f64,
+}
+
+// Struct to hold pattern information for ML training
+#[derive(Debug, Clone)]
+struct PatternMatch {
+    pattern_length: usize,
+    num_matches: usize,
+    total_score: f64,
+    future_performance: f64,
+}
+
+// Compute pattern match features
+fn compute_pattern_features(changes: &[f64], min_length: usize, max_length: usize) -> Vec<PatternMatch> {
+    let dynamic_tolerance = compute_tolerance(changes, 0.3);
+    let mut pattern_matches = Vec::new();
+
+    // Parallel pattern matching and feature extraction
+    for length in min_length..=max_length {
+        let patterns = get_patterns(changes, length, length);
+        
+        let matches: Vec<_> = patterns
+            .into_par_iter()
+            .filter_map(|pattern| {
+                let result = pattern_matching_with_tolerance(changes, &pattern, dynamic_tolerance);
+                
+                // Filter valid matches with future changes
+                let valid_result: Vec<usize> = result
+                    .into_iter()
+                    .filter(|&idx| idx + pattern.len() < changes.len())
+                    .collect();
+                
+                if valid_result.is_empty() {
+                    return None;
+                }
+                
+                // Compute future performance
+                let future_performance: f64 = valid_result
+                    .iter()
+                    .map(|&idx| changes[idx + pattern.len()])
+                    .sum::<f64>() / valid_result.len() as f64;
+                
+                Some(PatternMatch {
+                    pattern_length: length,
+                    num_matches: valid_result.len(),
+                    total_score: valid_result
+                        .iter()
+                        .map(|&idx| if changes[idx + pattern.len()] > 0.0 { 1.0 } else { -1.0 })
+                        .sum(),
+                    future_performance,
+                })
+            })
+            .collect();
+        
+        pattern_matches.extend(matches);
+    }
+    
+    pattern_matches
+}
+
+// Train a linear regression model to weight pattern matches
+fn train_pattern_weights(pattern_matches: &[PatternMatch]) -> Result<Array1<f64>, Box<dyn Error>> {
+    // Prepare features and target
+    let features: Array2<f64> = Array2::from_shape_vec(
+        (pattern_matches.len(), 3),
+        pattern_matches.iter()
+            .flat_map(|pm| vec![
+                pm.pattern_length as f64, 
+                pm.num_matches as f64, 
+                pm.total_score
+            ])
+            .collect()
+    )?;
+    
+    let target: Array1<f64> = Array1::from_vec(
+        pattern_matches.iter()
+            .map(|pm| pm.future_performance)
+            .collect()
+    );
+    
+    // Prepare dataset
+    let dataset = DatasetBase::new(features, target);
+    
+    // Train linear regression
+    let model = LinearRegression::new()
+        .fit(&dataset)?;
+    
+    Ok(model.params().to_owned())
+}
+
+// Weighted pattern matching using learned weights
+fn weighted_pattern_matching(
+    changes: &[f64], 
+    weights: &Array1<f64>, 
+    min_length: usize, 
+    max_length: usize
+) -> (Vec<(Vec<f64>, Vec<usize>, f64)>, f64) {
+    let dynamic_tolerance = compute_tolerance(changes, 0.3);
+    
+    // Use parallel iterator for pattern matching and scoring
+    let matched: Vec<_> = get_efficient_patterns(changes, min_length, max_length)
+        .into_par_iter()
+        .filter_map(|pattern| {
+            let result = pattern_matching_with_tolerance(changes, &pattern, dynamic_tolerance);
+            
+            // Filter valid matches with future changes
+            let valid_result: Vec<usize> = result
+                .into_iter()
+                .filter(|&idx| idx + pattern.len() < changes.len())
+                .collect();
+            
+            if valid_result.is_empty() {
+                return None;
+            }
+            
+            // Compute weighted score
+            // Features: [pattern_length, num_matches, pattern_score]
+            let features = vec![
+                pattern.len() as f64, 
+                valid_result.len() as f64, 
+                valid_result.iter()
+                    .map(|&idx| if changes[idx + pattern.len()] > 0.0 { 1.0 } else { -1.0 })
+                    .sum::<f64>()
+            ];
+            
+            // Compute weighted score using learned weights
+            let weighted_score = features.iter()
+                .zip(weights.iter())
+                .map(|(f, w)| f * w)
+                .sum::<f64>();
+            
+            Some((pattern, valid_result, weighted_score))
+        })
+        .collect();
+    
+    let total_score = matched.iter().map(|&(_, _, score)| score).sum();
+    
+    (matched, total_score)
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    // Load data
+    let file = File::open("../futures_data.csv")?;
+    let mut rdr = ReaderBuilder::new().from_reader(BufReader::new(file));
+
+    let mut open_prices = Vec::with_capacity(1000);
+    let mut close_prices = Vec::with_capacity(1000);
+
+    for result in rdr.deserialize() {
+        let record: Record = result?;
+        open_prices.push(record.open);
+        close_prices.push(record.close);
+    }
+
+    // Compute price changes
+    let changes: Vec<f64> = close_prices.iter()
+        .zip(open_prices.iter())
+        .map(|(&c, &o)| ((c - o) / o) * 100.0)
+        .collect();
+
+    // Compute pattern match features
+    let pattern_matches = compute_pattern_features(&changes, 3, 10);
+    
+    // Train pattern weights
+    let weights = train_pattern_weights(&pattern_matches)?;
+    println!("Learned Pattern Weights: {:?}", weights);
+
+    // Adjust these values as needed
+    let min_length = 3;
+    let max_length = 10;
+
+    // Perform weighted pattern matching
+    let (actions, total_score) = weighted_pattern_matching(&changes, &weights, min_length, max_length);
+    
+    println!("Total Weighted Score: {}", total_score);
+
+    // Decision logic
+    match total_score.partial_cmp(&0.0).unwrap() {
+        std::cmp::Ordering::Greater => println!("Decision: BUY"),
+        std::cmp::Ordering::Less => println!("Decision: SELL"),
+        std::cmp::Ordering::Equal => println!("Decision: None"),
+    }
+
+    Ok(())
+}
+
+// Helper functions from previous implementation (unchanged)
+fn compute_tolerance(changes: &[f64], factor: f64) -> f64 {
+    let n = changes.len() as f64;
+    let mean = changes.iter().sum::<f64>() / n;
+    let variance = changes.iter()
+        .map(|&x| (x - mean).powi(2))
+        .sum::<f64>() / n;
+    variance.sqrt() * factor
+}
+
+fn within_tolerance(a: f64, b: f64, tolerance: f64) -> bool {
+    (a - b).abs() <= tolerance
+}
+
+fn pattern_matching_with_tolerance(text: &[f64], pattern: &[f64], tolerance: f64) -> Vec<usize> {
+    let m = pattern.len();
+    let n = text.len();
+    
+    if m == 0 || m > n {
+        return Vec::new();
+    }
+
+    (0..=n - m)
+        .into_par_iter()
+        .filter_map(|s| {
+            let is_match = pattern.iter()
+                .enumerate()
+                .all(|(j, &pat_val)| within_tolerance(text[s + j], pat_val, tolerance));
+            
+            if is_match { Some(s) } else { None }
+        })
+        .collect()
+}
+
+fn get_efficient_patterns(changes: &[f64], min_length: usize, max_length: usize) -> Vec<Vec<f64>> {
+    let n = changes.len();
+    let mut patterns = Vec::new();
+    
+    // Focus on recent patterns from the end
+    for length in (min_length..=max_length).rev() {
+        if length <= n {
+            // Add the most recent patterns first
+            for start in (0..=n - length).rev().take(5) {
+                patterns.push(changes[start..start + length].to_vec());
+            }
+        }
+    }
+    
+    patterns
+}
+
+fn get_patterns(changes: &[f64], min_length: usize, max_length: usize) -> Vec<Vec<f64>> {
+    let n = changes.len();
+    let mut patterns = Vec::new();
+    
+    for length in min_length..=max_length {
+        if length <= n {
+            for start in 0..=n - length {
+                patterns.push(changes[start..start + length].to_vec());
+            }
+        }
+    }
+    
+    patterns
+}

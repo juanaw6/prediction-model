@@ -53,11 +53,11 @@ class BadCharRangeTable():
                 return self.last_occurrence[range_.val]
         return default
 
-def get_sublists_from_back(lst, min_length=3):
-    sublists = [lst[i:] for i in range(len(lst) - min_length, -1, -1)]
+def get_sublists(lst, min_length=3, max_length=5):
+    sublists = [lst[:i+min_length] for i in range(max_length - min_length + 1)]
     return sublists
 
-def compute_tolerance(changes, factor=0.3):
+def compute_tolerance(changes, factor=0.5):
     std_dev = np.std(changes)
     tolerance = std_dev * factor
     return tolerance
@@ -89,44 +89,43 @@ def pattern_matching_with_tolerance(text, pattern, dynamic_tolerance):
 
 def determine_action(changes):
     dynamic_tolerance = compute_tolerance(changes)
-    patterns = get_sublists_from_back(changes)
+    patterns = get_sublists(changes)
+    changes_to_match = changes[1:] # only match the pattern to the changes with the first data (so not always found one that is the pattern come from)
+    
     matched = []
-
     for pattern in patterns:
-        result = pattern_matching_with_tolerance(changes, pattern, dynamic_tolerance)
+        result = pattern_matching_with_tolerance(changes_to_match, pattern, dynamic_tolerance)
         result = [idx for idx in result if idx + len(pattern) < len(changes)]
         if not result:
             continue
-        score = sum(1 if changes[idx + len(pattern)] > 0 else -1 for idx in result)
+        score = sum(1 if changes[idx] > 0 else -1 for idx in result)
         matched.append((pattern, result, score))
 
     return matched
 
 # Load data
-csv_file_path = "futures_data.csv"
+csv_file_path = "data_preprocessed.csv"
 df = pd.read_csv(csv_file_path)
-close_prices = df["close"].tolist()
-open_prices = df["open"].tolist()
-changes = [(close_prices[i] - open_prices[i]) / open_prices[i] * 100 for i in range(len(df))]
+changes = df["changes"].tolist()
+changes.reverse()
 
-# Determine actions
 actions = determine_action(changes)
 
-# Calculate changes and tolerance
 tolerance = compute_tolerance(changes)
 print("Tolerance:", tolerance)
 
-# Calculate and print scores
 total_score = 0
 for pattern, result, score in actions:
-    print("-----------------------------------------------------------")
-    print(f"Pattern {pattern}\nfound at index {result}, score: {score}")
+    print()
+    print(f"Pattern {pattern}\n")
+    print(f"At index: {result}")
+    print(f"Found count: {len(result)}")
     print(f"Score: {score}")
-    print("-----------------------------------------------------------")
+    print()
     total_score += score
 
 # Final decision
-print(total_score)
+print(f"Total Score: {total_score}")
 if total_score > 0:
     print("Decision: BUY")
 elif total_score < 0:

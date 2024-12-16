@@ -8,3 +8,7 @@ csv = "1.2"
 serde = { version = "1.0", features = ["derive"] }
 ordered-float = "4.5.0"
 rayon = "1.10.0"
+linfa = "0.7.0"
+linfa-linear = "0.7.0"
+ndarray = "0.16.1"
+ndarray-rand = "0.15.0"
