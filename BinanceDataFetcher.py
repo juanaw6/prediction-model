@@ -115,9 +115,10 @@ class BinanceDataFetcher:
 
         # Convert timestamps
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df['changes'] = (df['close'] - df['open']) / df['open'] * 100
 
         # Select and return only essential columns
-        return df[['timestamp', 'open', 'high', 'low', 'close', 'volume']].dropna()
+        return df[['timestamp', 'open', 'high', 'low', 'close', 'changes', 'volume']].dropna()
 
     def fetch_data(
         self, 
