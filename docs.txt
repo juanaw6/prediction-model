@@ -1,0 +1,16 @@
+column to search for pattern = search_column
+
+column for prediction = prediction_column
+
+every pattern in column if pattern is matched then save the index
+
+if prediction_column in index is bullish = +1, neutral = 0, bearish = -1
+
+output data:
+{
+    pattern_length(str): total_score
+}
+
+end_score = sigma(w_i * score_i) for i = pattern_length
+
+search for best w_i using back propagation
