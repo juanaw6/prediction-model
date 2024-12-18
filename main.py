@@ -23,4 +23,4 @@ fetcher.fetch_futures_data(symbol, interval, start_date, end_date, csv_filepath)
 df = pd.read_csv(csv_filepath)
 
 preprocessor = Preprocessor()
-preprocessor.transform(df, 'data_preprocessed.csv')
+preprocessor.transform_to_csv(df, 'data_preprocessed.csv')

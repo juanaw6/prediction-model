@@ -23,7 +23,6 @@ class Preprocessor:
     def transform(
         self,
         df: pd.DataFrame,
-        output_filepath: str = None
     ) -> pd.DataFrame:
         if 'changes' not in df.columns:
             raise ValueError("Dataframe must contain a 'changes' column.")
@@ -31,8 +30,19 @@ class Preprocessor:
         df['changes_label'] = df['changes'].apply(self._get_changes_label)
         df['next_changes_label'] = df['changes_label'].shift(-1)
         
-        if output_filepath is not None:
-            df.to_csv(output_filepath, index=False)
-        
         return df
     
+    def transform_to_csv(
+        self,
+        df: pd.DataFrame,
+        output_filepath: str = None
+    ) -> pd.DataFrame:
+        
+        df = self.transform(df)
+        
+        if output_filepath is not None:
+            df.to_csv(output_filepath, index=False)
+        else:
+            df.to_csv("preprocessed.csv")
+            
+        return df
