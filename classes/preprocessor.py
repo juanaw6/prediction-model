@@ -8,7 +8,18 @@ class Preprocessor:
     ):
         self.high_threshold = high_threshold
         self.low_threshold = low_threshold
-        
+
+    def _get_changes_label(self, change: float) -> str:
+        """Determine the label for the given change value."""
+        if change > self.high_threshold:
+            return 'BULLISH'
+        elif self.low_threshold <= change <= self.high_threshold:
+            return 'NEUTRAL'
+        elif change < self.low_threshold:
+            return 'BEARISH'
+        else:
+            return 'NEUTRAL'
+
     def transform(
         self,
         df: pd.DataFrame,
@@ -17,22 +28,11 @@ class Preprocessor:
         if 'changes' not in df.columns:
             raise ValueError("Dataframe must contain a 'changes' column.")
         
-        target_class = []
+        df['changes_label'] = df['changes'].apply(self._get_changes_label)
+        df['next_changes_label'] = df['changes_label'].shift(-1)
         
-        for i in range(len(df) - 1):
-            next_change = df['changes'].iloc[i + 1]
-            
-            if next_change > self.high_threshold:
-                target_class.append('BUY')
-            elif self.low_threshold <= next_change <= 0.05:
-                target_class.append('HOLD')
-            elif next_change < self.low_threshold:
-                target_class.append('SELL')
-        
-        target_class.append(None)
-        df['target'] = target_class
-        
-        if output_filepath != None:
+        if output_filepath is not None:
             df.to_csv(output_filepath, index=False)
         
         return df
+    
