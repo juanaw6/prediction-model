@@ -10,10 +10,10 @@ api_key = os.getenv("BINANCE_API_KEY")
 api_secret = os.getenv("BINANCE_API_SECRET")
 
 # Fetch data
-symbol = "BTCUSDT"
-interval = '5m'
-start_date = '2024-01-01 00:00:00'
-end_date = '2024-12-20'
+symbol = "ETHUSDT"
+interval = '1m'
+start_date = '2024-11-01 00:00:00'
+end_date = '2024-12-22'
 csv_filepath = 'data_fetched.csv'
 
 fetcher = BinanceDataFetcher(api_key=api_key, api_secret=api_secret)
