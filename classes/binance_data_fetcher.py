@@ -113,9 +113,10 @@ class BinanceDataFetcher:
         df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
         
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        df['changes'] = ((df['close'] - df['open']) / df['open'] * 100).round(3)
+        # df['changes'] = ((df['close'] - df['open']) / df['open'] * 100).round(3)
 
-        return df[['timestamp', 'open', 'high', 'low', 'close', 'changes', 'volume']].dropna()
+        # return df[['timestamp', 'open', 'high', 'low', 'close', 'changes', 'volume']].dropna()
+        return df[['timestamp', 'open', 'high', 'low', 'close', 'volume']].dropna()
 
     def fetch_data(
         self, 
