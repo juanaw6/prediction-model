@@ -41,7 +41,7 @@
     },
     {
       "id": 4,
-      "content": "<U_10>",
+      "content": "<UP_4>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -50,96 +50,6 @@
     },
     {
       "id": 5,
-      "content": "<U_9>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 6,
-      "content": "<U_8>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 7,
-      "content": "<U_7>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 8,
-      "content": "<U_6>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 9,
-      "content": "<U_5>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 10,
-      "content": "<U_4>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 11,
-      "content": "<U_3>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 12,
-      "content": "<U_2>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 13,
-      "content": "<U_1>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 14,
-      "content": "<U_0>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 15,
       "content": "<NEUTRAL>",
       "single_word": false,
       "lstrip": false,
@@ -148,8 +58,8 @@
       "special": false
     },
     {
-      "id": 16,
-      "content": "<D_0>",
+      "id": 6,
+      "content": "<UP_2>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -157,8 +67,8 @@
       "special": false
     },
     {
-      "id": 17,
-      "content": "<D_1>",
+      "id": 7,
+      "content": "<DOWN_-2>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -166,8 +76,8 @@
       "special": false
     },
     {
-      "id": 18,
-      "content": "<D_2>",
+      "id": 8,
+      "content": "<DOWN_-1>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -175,8 +85,8 @@
       "special": false
     },
     {
-      "id": 19,
-      "content": "<D_3>",
+      "id": 9,
+      "content": "<DOWN_-3>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -184,8 +94,8 @@
       "special": false
     },
     {
-      "id": 20,
-      "content": "<D_4>",
+      "id": 10,
+      "content": "<UP_3>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -193,8 +103,8 @@
       "special": false
     },
     {
-      "id": 21,
-      "content": "<D_5>",
+      "id": 11,
+      "content": "<DOWN_-4>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -202,44 +112,8 @@
       "special": false
     },
     {
-      "id": 22,
-      "content": "<D_6>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 23,
-      "content": "<D_7>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 24,
-      "content": "<D_8>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 25,
-      "content": "<D_9>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 26,
-      "content": "<D_10>",
+      "id": 12,
+      "content": "<UP_1>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,

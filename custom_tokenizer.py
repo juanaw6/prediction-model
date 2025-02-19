@@ -1,4 +1,5 @@
 import os
+import json
 from tokenizers import Tokenizer
 from tokenizers.models import WordLevel
 from tokenizers.pre_tokenizers import Whitespace
@@ -52,12 +53,18 @@ def create_and_save_tokenizer(
     print(f"Tokenizer created and saved to '{tokenizer_path}'")
     print(f"Tokenizer directory: '{output_dir}'")
     print(f"Vocabulary size: {len(fast_tokenizer)}")
+    print("\nVocabulary:")
+    for token, idx in vocab.items():
+        print(f"{token}: {idx}")
 
 if __name__ == "__main__":
-    custom_tokens = [
-        "<U_10>", "<U_9>", "<U_8>", "<U_7>", "<U_6>",
-        "<U_5>", "<U_4>", "<U_3>", "<U_2>", "<U_1>", "<U_0>",
-        "<NEUTRAL>", "<D_0>", "<D_1>", "<D_2>", "<D_3>", "<D_4>",
-        "<D_5>", "<D_6>", "<D_7>", "<D_8>", "<D_9>", "<D_10>"
-    ]
+    json_file_path = "custom_tokens.json"
+    try:
+        with open(json_file_path, "r") as f:
+            custom_tokens = json.load(f)
+        print(f"Loaded custom tokens from {json_file_path}")
+    except FileNotFoundError:
+        print(f"Error: Custom tokens JSON file not found at {json_file_path}. Using an empty list instead.")
+        custom_tokens = []
+
     create_and_save_tokenizer(custom_tokens=custom_tokens)

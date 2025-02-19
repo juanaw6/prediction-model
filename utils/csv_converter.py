@@ -1,113 +1,132 @@
 import pandas as pd
+import numpy as np
+np.NaN = np.nan
+import pandas_ta as ta
 
-def convert_csv_to_tokens(input_csv, output_txt, output_lined_txt):
+def to_lined(sequence, token_chunk_size, output_lined_txt):
     """
-    Converts price changes into token sequences and saves them to output files.
+    Saves a sequence of tokens to a text file, chunking them into lines.
 
-    Parameters:
-        input_csv (str): Path to the input CSV file.
-        output_txt (str): Path to the output text file.
-        output_lined_txt (str): Path to the output text file for the lined classification result.
+    Args:
+        sequence (list): List of tokens.
+        token_chunk_size (int): Number of tokens per line.
+        output_lined_txt (str): Path to the output text file.
     """
-    df = pd.read_csv(input_csv, parse_dates=['timestamp'])
-    
-    closes = df['close']
-    opens = df['open']
-    
-    sequence = []
-    
-    UP_10_THRESHOLD = 1.0
-    UP_9_THRESHOLD  = 0.9
-    UP_8_THRESHOLD  = 0.8
-    UP_7_THRESHOLD  = 0.7
-    UP_6_THRESHOLD  = 0.6
-    UP_5_THRESHOLD  = 0.5
-    UP_4_THRESHOLD  = 0.4
-    UP_3_THRESHOLD  = 0.3
-    UP_2_THRESHOLD  = 0.2
-    UP_1_THRESHOLD  = 0.1
-    UP_0_THRESHOLD  = 0.05
-    
-    D_0_THRESHOLD   = -0.05 
-    D_1_THRESHOLD   = -0.1
-    D_2_THRESHOLD   = -0.2
-    D_3_THRESHOLD   = -0.3
-    D_4_THRESHOLD   = -0.4
-    D_5_THRESHOLD   = -0.5
-    D_6_THRESHOLD   = -0.6
-    D_7_THRESHOLD   = -0.7
-    D_8_THRESHOLD   = -0.8
-    D_9_THRESHOLD   = -0.9
-    D_10_THRESHOLD  = -1.0
-
-    positive_thresholds = [
-        (UP_10_THRESHOLD, '<U_10>'),
-        (UP_9_THRESHOLD,  '<U_9>'),
-        (UP_8_THRESHOLD,  '<U_8>'),
-        (UP_7_THRESHOLD,  '<U_7>'),
-        (UP_6_THRESHOLD,  '<U_6>'),
-        (UP_5_THRESHOLD,  '<U_5>'),
-        (UP_4_THRESHOLD,  '<U_4>'),
-        (UP_3_THRESHOLD,  '<U_3>'),
-        (UP_2_THRESHOLD,  '<U_2>'),
-        (UP_1_THRESHOLD,  '<U_1>'),
-        (UP_0_THRESHOLD,  '<U_0>')
-    ]
-    
-    negative_thresholds = [
-        (D_10_THRESHOLD, '<D_10>'),
-        (D_9_THRESHOLD,  '<D_9>'),
-        (D_8_THRESHOLD,  '<D_8>'),
-        (D_7_THRESHOLD,  '<D_7>'),
-        (D_6_THRESHOLD,  '<D_6>'),
-        (D_5_THRESHOLD,  '<D_5>'),
-        (D_4_THRESHOLD,  '<D_4>'),
-        (D_3_THRESHOLD,  '<D_3>'),
-        (D_2_THRESHOLD,  '<D_2>'),
-        (D_1_THRESHOLD,  '<D_1>'),
-        (D_0_THRESHOLD,  '<D_0>')
-    ]
-
-    for i in range(len(closes)):
-        open_price = opens[i]
-        close_price = closes[i]
-
-        percent_change = ((close_price - open_price) / open_price) * 100
-        
-        if percent_change > UP_0_THRESHOLD:
-            token = None
-            for thresh, tok in positive_thresholds:
-                if percent_change >= thresh:
-                    token = tok
-                    break
-            if token is None:
-                token = '<U_0>'
-            sequence.append(token)
-        
-        elif percent_change < D_0_THRESHOLD:
-            token = None
-            for thresh, tok in negative_thresholds:
-                if percent_change <= thresh:
-                    token = tok
-                    break
-            if token is None:
-                token = '<D_0>'
-            sequence.append(token)
-        
-        else:
-            sequence.append('<NEUTRAL>')
-
-    result = ''.join(sequence)
-    
-    token_chunk_size = 36
     lined_result = '\n'.join(
         ''.join(sequence[i:i + token_chunk_size]) for i in range(0, len(sequence), token_chunk_size)
     )
+    with open(output_lined_txt, 'w') as fl:
+        fl.write(lined_result)
+    print(f"Lined tokens saved to: {output_lined_txt}")
+
+
+def convert_csv_to_tokens(input_csv, output_txt, output_lined_txt, token_chunk_size):
+    """
+    Converts price changes into token sequences and saves them to output files.
+
+    Args:
+        input_csv (str): Path to the input CSV file.
+        output_txt (str): Path to the output text file.
+        output_lined_txt (str): Path to the output text file for the lined classification result.
+        token_chunk_size (int): Number of tokens per line for the lined output.
+    """
+    df = pd.read_csv(input_csv, parse_dates=['timestamp'])
+    
+    df['percent_change'] = (df['close'] - df['open']) / df['open'] * 100
+
+    num_classes = 9
+
+    if num_classes % 2 == 0:
+        print("Even class value. Results may be incorrect, use odd value.")
+    class_midpoint = num_classes // 2
+    class_labels = [str(i - class_midpoint) for i in range(num_classes)]
+    df['class'] = pd.qcut(df['percent_change'], q=num_classes, labels=class_labels)
+    
+    quantile_vals = df['percent_change'].quantile([i/num_classes for i in range(1, num_classes)])
+    # print("\nQuantile Values:")
+    # print(list(quantile_vals))
+
+    output_txt_file = "quantile_values.txt"
+    quantile_vals.to_csv(output_txt_file, header=['Quantile Value'], index=False)
+    print(f"Quantile values saved to {output_txt_file}")
+    
+    sequence = []
+    
+    classes = df['class']
+    
+    for cl in classes:
+        current_class = int(cl)
+        if current_class < 0:
+            sequence.append(f"<DOWN_{current_class}>")
+        elif current_class > 0:
+            sequence.append(f"<UP_{current_class}>")
+        else:
+            sequence.append("<NEUTRAL>")
+    
+    result = ''.join(sequence)
     
     with open(output_txt, 'w') as f:
         f.write(result)
     print(f"Tokens saved to: {output_txt}")
     
-    with open(output_lined_txt, 'w') as fl:
-        fl.write(lined_result)
-    print(f"Lined tokens saved to: {output_lined_txt}")
+    to_lined(sequence=sequence, token_chunk_size=token_chunk_size, output_lined_txt=output_lined_txt)
+    
+    
+def convert_csv_to_tokens_2(input_csv, output_txt, output_lined_txt, token_chunk_size):
+    """
+    Converts the CSV file by first calculating MACD and RSI (using pandas-ta) and then
+    generating tokens that combine the price-action (bullish/bearish), MACD and RSI levels.
+    For example, if for the current candle the close is above the open (bullish), MACD > 0, and RSI > 50,
+    the token will be "<U_MABOVE0_RSIABOVE50>". For bearish candles or other indicator levels, the token is built accordingly.
+
+    code
+
+    Parameters:
+        input_csv (str): Path to the input CSV file.
+        output_txt (str): Path to the output text file.
+        output_lined_txt (str): Path to the output text file for the lined tokens.
+        token_chunk_size (int): Number of tokens per line in the lined output.
+    """
+    df = pd.read_csv(input_csv, parse_dates=['timestamp'])
+
+    macd_df = ta.macd(close=df['close'])
+    df['macd'] = macd_df['MACD_12_26_9']
+    df['rsi'] = ta.rsi(close=df['close'])
+    
+    df.dropna(inplace=True)
+
+    tokens = []
+    
+    std = np.std(((df['close'] - df['open']) / df['open']) * 100)
+    print(f"std Change: {std}")
+
+    for _, row in df.iterrows():
+        if row['close'] > row['open']:
+            direction = "U"
+        elif row['close'] < row['open']:
+            direction = "D"
+        else:
+            direction = "N"
+        
+        if row['macd'] > 0:
+            macd_token = "M-ABOVE-0"
+        else:
+            macd_token = "M-BELOW-0"
+
+        if row['rsi'] >=70:
+            rsi_token = "RSI-OB"
+        elif row['rsi'] <= 30:
+            rsi_token = "RSI-OS"
+        else:
+            rsi_token = "RSI-N"
+        
+        token = f"<{direction}_{macd_token}_{rsi_token}>"
+        tokens.append(token)
+
+    result = ''.join(tokens)
+    with open(output_txt, 'w') as f:
+        f.write(result)
+    print(f"Tokens saved to: {output_txt}")
+    
+    to_lined(sequence=tokens, token_chunk_size=token_chunk_size, output_lined_txt=output_lined_txt)
+    
