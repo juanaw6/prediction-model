@@ -34,7 +34,7 @@ def convert_csv_to_tokens(input_csv, output_txt, output_lined_txt, token_chunk_s
     
     df['percent_change'] = (df['close'] - df['open']) / df['open'] * 100
 
-    num_classes = 9
+    num_classes = 5
 
     if num_classes % 2 == 0:
         print("Even class value. Results may be incorrect, use odd value.")

@@ -30,7 +30,7 @@ def predict_next_tokens(input_sequences):
             predicted = tokenizer.decode(predicted_token_id, skip_special_tokens=True)
 
         predictions.append(predicted)
-        print(f"Input: {input_text} | Predicted: {predicted}")
+        # print(f"Input: {input_text} | Predicted: {predicted}")
 
     return predictions
 
