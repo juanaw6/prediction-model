@@ -6,7 +6,7 @@ from transformers import (
 import torch
 from sklearn.metrics import classification_report
 
-loaded_model = GPT2LMHeadModel.from_pretrained("./results/final_model")
+loaded_model = GPT2LMHeadModel.from_pretrained("./results/gpt2/final_model")
 tokenizer = PreTrainedTokenizerFast.from_pretrained("./custom-tokenizer")
 
 vocab_dict = tokenizer.get_vocab()

@@ -48,7 +48,7 @@ def tokenize_function(examples):
 tokenized_dataset = split_dataset.map(tokenize_function, batched=True, remove_columns=["text"])
 
 training_args = TrainingArguments(
-    output_dir="./results",
+    output_dir="./results/gpt2",
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
     num_train_epochs=20,
@@ -82,24 +82,30 @@ trainer = Trainer(
     eval_dataset=tokenized_dataset["test"],
 )
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+num_params = count_parameters(model)
+print(f"The model has {num_params:,} trainable parameters")
+
 trainer.train()
 
-model_save_path = "./results/final_model"
+model_save_path = "./results/gpt2/final_model"
 model.save_pretrained(model_save_path)
 print(f"Model saved to {model_save_path}")
 
 
-# MODEL TEST
-input_text = "<D_1><U_2><D_3>"
-input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
-print(input_ids)
+# # MODEL TEST
+# input_text = "<D_1><U_2><D_3>"
+# input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
+# print(input_ids)
 
-output = model.generate(
-    input_ids,
-    max_length=len(input_ids[0]) + 1,
-    num_beams=5,
-    early_stopping=True,
-)
+# output = model.generate(
+#     input_ids,
+#     max_length=len(input_ids[0]) + 1,
+#     num_beams=5,
+#     early_stopping=True,
+# )
 
-predicted_token = tokenizer.decode(output[0][-1], skip_special_tokens=True)
-print(f"Predicted next token: {predicted_token}")
+# predicted_token = tokenizer.decode(output[0][-1], skip_special_tokens=True)
+# print(f"Predicted next token: {predicted_token}")
