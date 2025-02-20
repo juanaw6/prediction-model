@@ -1,6 +1,6 @@
 import pandas as pd
 
-def count_tokens_from_txt(file_path):
+def count_tokens_in_file(file_path):
     """
     Reads a text file containing sequences of tokens, counts occurrences of each token, 
     and prints a sorted list of tokens and their counts.

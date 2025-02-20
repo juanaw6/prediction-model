@@ -6,7 +6,7 @@ from transformers import (
 import torch
 from sklearn.metrics import classification_report
 
-model_path = "./results/llama/final_model"
+model_path = "./results/llama_2/final_model"
 tokenizer = AutoTokenizer.from_pretrained("./custom-tokenizer")
 
 loaded_model = AutoModelForCausalLM.from_pretrained(model_path)
@@ -14,7 +14,7 @@ loaded_model = AutoModelForCausalLM.from_pretrained(model_path)
 loaded_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 loaded_model.to(loaded_device)
 
-df = pd.read_csv("./data/test/testset.csv")
+df = pd.read_csv("./data/test/test_dataset.csv")
 input_sequences = df["input_sequence"].tolist()
 actual_targets = df["target"].tolist()
 
@@ -45,6 +45,6 @@ def clean_targets(targets, predictions):
 
 
 predictions = predict_next_tokens(input_sequences)
-actual_targets, predictions = clean_targets(actual_targets, predictions)  # remove non-strings
-report = classification_report(actual_targets, predictions, digits=4, zero_division=1) # zero_division added
+actual_targets, predictions = clean_targets(actual_targets, predictions)
+report = classification_report(actual_targets, predictions, digits=4, zero_division=1)
 print(report)

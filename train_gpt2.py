@@ -20,12 +20,16 @@ for token, token_id in sorted_vocab:
     print(f"{token_id}: {token}")
 
 config = GPT2Config(
-    vocab_size=len(tokenizer),
+    vocab_size=len(tokenizer),  
     n_positions=512,
     n_ctx=512,
     n_embd=768,
-    n_layer=12,
-    n_head=12,              
+    n_layer=6,
+    n_head=8,
+    resid_pdrop=0.2,
+    attn_pdrop=0.2,  
+    embd_pdrop=0.2,  
+    initializer_range=0.02,  
     bos_token_id=tokenizer.bos_token_id,
     eos_token_id=tokenizer.eos_token_id,
 )
@@ -34,7 +38,7 @@ model = GPT2LMHeadModel(config)
 model.resize_token_embeddings(len(tokenizer))
 model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
-training_data = "./data/train/sol_lined.txt"
+training_data = "./data/train/sol_lined_tokens.txt"
 dataset = load_dataset("text", data_files={"train": training_data})
 
 split_dataset = dataset["train"].train_test_split(test_size=0.1, shuffle=False)

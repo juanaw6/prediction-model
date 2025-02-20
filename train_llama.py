@@ -10,7 +10,7 @@ from transformers import (
     LlamaConfig
 )
 
-training_data = "./data/train/sol_lined.txt"
+training_data = "./data/train/sol_lined_tokens.txt"
 dataset = load_dataset("text", data_files={"train": training_data})
 
 split_dataset = dataset["train"].train_test_split(test_size=0.1, shuffle=False)

@@ -41,51 +41,6 @@
     },
     {
       "id": 4,
-      "content": "<UP_1>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 5,
-      "content": "<DOWN_-2>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 6,
-      "content": "<NEUTRAL>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 7,
-      "content": "<DOWN_-4>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 8,
-      "content": "<UP_3>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 9,
       "content": "<DOWN_-1>",
       "single_word": false,
       "lstrip": false,
@@ -94,8 +49,8 @@
       "special": false
     },
     {
-      "id": 10,
-      "content": "<DOWN_-3>",
+      "id": 5,
+      "content": "<UP_1>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -103,17 +58,26 @@
       "special": false
     },
     {
-      "id": 11,
-      "content": "<UP_4>",
-      "single_word": false,
-      "lstrip": false,
-      "rstrip": false,
-      "normalized": true,
-      "special": false
-    },
-    {
-      "id": 12,
+      "id": 6,
       "content": "<UP_2>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": true,
+      "special": false
+    },
+    {
+      "id": 7,
+      "content": "<NEUTRAL>",
+      "single_word": false,
+      "lstrip": false,
+      "rstrip": false,
+      "normalized": true,
+      "special": false
+    },
+    {
+      "id": 8,
+      "content": "<DOWN_-2>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,

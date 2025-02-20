@@ -18,7 +18,7 @@ for token, token_id in sorted_vocab:
 loaded_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 loaded_model.to(loaded_device)
 
-df = pd.read_csv("./data/test/testset.csv")
+df = pd.read_csv("./data/test/test_dataset.csv")
 input_sequences = df["input_sequence"].tolist()
 actual_targets = df["target"].tolist()
 

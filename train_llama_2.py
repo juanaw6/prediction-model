@@ -10,7 +10,7 @@ from transformers import (
     LlamaConfig
 )
 
-training_data = "./data/train/sol_lined.txt"
+training_data = "./data/train/sol_lined_tokens.txt"
 dataset = load_dataset("text", data_files={"train": training_data})
 
 split_dataset = dataset["train"].train_test_split(test_size=0.1, shuffle=False)
@@ -23,18 +23,18 @@ tokenizer = AutoTokenizer.from_pretrained("./custom-tokenizer")
 from transformers import LlamaConfig
 
 config = LlamaConfig(
-    vocab_size=len(tokenizer),  # Correct vocab size
-    hidden_size=2048,  # Increased for better representation
-    intermediate_size=4 * 2048,  # Standard MLP size
-    num_hidden_layers=12,  # Reduced for small dataset
-    num_attention_heads=32,  # Increased for better attention
-    rms_norm_eps=1e-05,  # Improved numerical stability
-    use_cache=False,  # Disable cache during training
-    rope_scaling={"type": "linear", "factor": 2.0},  # Improves long-sequence learning
+    vocab_size=len(tokenizer),
+    hidden_size=2048,
+    intermediate_size=4 * 2048,
+    num_hidden_layers=12,
+    num_attention_heads=32,
+    rms_norm_eps=1e-05,
+    use_cache=False,
+    rope_scaling={"type": "linear", "factor": 2.0},
     pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
     bos_token_id=tokenizer.bos_token_id,
     eos_token_id=tokenizer.eos_token_id,
-    tie_word_embeddings=True,  # Reduces parameters, better efficiency
+    tie_word_embeddings=True,
 )
 
 model = AutoModelForCausalLM.from_config(config)
