@@ -8,7 +8,6 @@ def convert_csv_to_tokens(input_csv_path, output_txt_path, num_classes):
         input_csv_path (str): Path to the input CSV file.
         output_txt_path (str): Path to the output text file.
         output_lined_txt (str): Path to the output text file for the lined classification result.
-        token_chunk_size (int): Number of tokens per line for the lined output.
     """
     df = pd.read_csv(input_csv_path, parse_dates=['timestamp'])
     
