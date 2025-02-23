@@ -2,6 +2,8 @@ from utils.csv_to_token_converter import convert_csv_to_tokens
 from utils.token_counter import count_tokens_in_file
 from utils.dataset_splitter import split_dataset_into_train_test
 from utils.token_extractor import extract_tokens_to_json
+from custom_tokenizer import create_custom_tokenizer
+
 
 # Setup
 input_csv_path = "./data/raw/solusdt_5m_2021_2025.csv"
@@ -29,9 +31,12 @@ split_dataset_into_train_test(
     train_output_path=output_lined_token_file,
     test_output_path=test_dataset_csv_path,
     train_token_context=36,
-    test_token_context=36,
-    max_samples=3000,
+    test_token_context=10,
+    max_samples=None,
+    # windowed=False,
     windowed=True,
-    train_window_step=36,
+    train_window_step=5,
     test_window_step=1
 )
+
+create_custom_tokenizer(custom_tokens_json="custom_tokens.json")

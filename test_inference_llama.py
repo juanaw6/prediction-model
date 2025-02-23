@@ -6,7 +6,7 @@ from transformers import (
 import torch
 from sklearn.metrics import classification_report
 
-model_path = "./results/llama_2/final_model"
+model_path = "./results/llama_small/final_model"
 tokenizer = AutoTokenizer.from_pretrained("./custom-tokenizer")
 
 loaded_model = AutoModelForCausalLM.from_pretrained(model_path)

@@ -32,7 +32,7 @@ def convert_csv_to_tokens(input_csv_path, output_txt_path, num_classes):
     for cl in classes:
         current_class = int(cl)
         if current_class < 0:
-            sequence.append(f"<DOWN_{current_class}>")
+            sequence.append(f"<DOWN_{abs(current_class)}>")
         elif current_class > 0:
             sequence.append(f"<UP_{current_class}>")
         else:

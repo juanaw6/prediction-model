@@ -33,7 +33,7 @@
       "special": true
     },
     "4": {
-      "content": "<DOWN_-1>",
+      "content": "<UP_2>",
       "lstrip": false,
       "normalized": true,
       "rstrip": false,
@@ -49,7 +49,7 @@
       "special": false
     },
     "6": {
-      "content": "<UP_2>",
+      "content": "<DOWN_1>",
       "lstrip": false,
       "normalized": true,
       "rstrip": false,
@@ -65,7 +65,7 @@
       "special": false
     },
     "8": {
-      "content": "<DOWN_-2>",
+      "content": "<DOWN_2>",
       "lstrip": false,
       "normalized": true,
       "rstrip": false,

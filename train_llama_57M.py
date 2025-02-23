@@ -14,27 +14,27 @@ torch.set_float32_matmul_precision('high')
 
 training_data = "./data/train/sol_lined_tokens.txt"
 dataset = load_dataset("text", data_files={"train": training_data})
-
 split_dataset = dataset["train"].train_test_split(test_size=0.1, shuffle=False)
-
 print("Training set size:", len(split_dataset["train"]))
 print("Test set size:", len(split_dataset["test"]))
 
 tokenizer = AutoTokenizer.from_pretrained("./custom-tokenizer")
 
+
 config = LlamaConfig(
     vocab_size=len(tokenizer),
-    hidden_size=1536,
-    intermediate_size=4147,
-    num_hidden_layers=16,
-    num_attention_heads=24,
+    hidden_size=768,
+    intermediate_size=2073,
+    num_hidden_layers=8,
+    num_attention_heads=12,
     rms_norm_eps=1e-06,
-    use_cache=True,
+    use_cache=False,
     pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
     bos_token_id = tokenizer.bos_token_id,
     eos_token_id = tokenizer.eos_token_id,
     tie_word_embeddings=False
 )
+
 
 model = AutoModelForCausalLM.from_config(config)
 model.resize_token_embeddings(len(tokenizer))
@@ -43,7 +43,7 @@ model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 print(f"Model embedding size: {model.get_output_embeddings().weight.shape}")
 
 def tokenize_function(examples):
-    return tokenizer(examples["text"], truncation=True, max_length=42)
+    return tokenizer(examples["text"], truncation=True, max_length=128)
 
 tokenized_dataset = split_dataset.map(tokenize_function, batched=True, remove_columns=["text"])
 
@@ -53,19 +53,19 @@ data_collator = DataCollatorForLanguageModeling(
 )
 
 training_args = TrainingArguments(
-    output_dir="./results/llama",
-    per_device_train_batch_size=32,
-    per_device_eval_batch_size=32,
-    gradient_accumulation_steps=2,
+    output_dir="./results/llama_small",
+    per_device_train_batch_size=64,
+    per_device_eval_batch_size=64,
+    gradient_accumulation_steps=1,
     num_train_epochs=20,
     evaluation_strategy="steps",
-    eval_steps=1000,
+    eval_steps=2000,
     save_strategy="steps",
-    save_steps=1000,
-    save_total_limit=3,
+    save_steps=2000,
+    save_total_limit=5,
     logging_dir="./logs",
     logging_steps=100,
-    learning_rate=6e-4,
+    learning_rate=3e-4,
     weight_decay=0.01,
     fp16=True,
     warmup_steps=250,
@@ -94,7 +94,7 @@ print(f"The model has {num_params:,} trainable parameters")
 
 trainer.train()
 
-model_save_path = "./results/llama/final_model"
+model_save_path = "./results/llama_small/final_model"
 model.save_pretrained(model_save_path)
 tokenizer.save_pretrained(model_save_path)
 print(f"Model saved to {model_save_path}")

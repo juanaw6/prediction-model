@@ -41,7 +41,7 @@
     },
     {
       "id": 4,
-      "content": "<DOWN_-1>",
+      "content": "<UP_2>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -59,7 +59,7 @@
     },
     {
       "id": 6,
-      "content": "<UP_2>",
+      "content": "<DOWN_1>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,
@@ -77,7 +77,7 @@
     },
     {
       "id": 8,
-      "content": "<DOWN_-2>",
+      "content": "<DOWN_2>",
       "single_word": false,
       "lstrip": false,
       "rstrip": false,

@@ -56,15 +56,15 @@ def create_and_save_tokenizer(
     print("\nVocabulary:")
     for token, idx in vocab.items():
         print(f"{token}: {idx}")
-
-if __name__ == "__main__":
-    json_file_path = "custom_tokens.json"
+        
+def create_custom_tokenizer(custom_tokens_json):
     try:
-        with open(json_file_path, "r") as f:
+        with open(custom_tokens_json, "r") as f:
             custom_tokens = json.load(f)
-        print(f"Loaded custom tokens from {json_file_path}")
+        print(f"Loaded custom tokens from {custom_tokens_json}")
     except FileNotFoundError:
-        print(f"Error: Custom tokens JSON file not found at {json_file_path}. Using an empty list instead.")
+        print(f"Error: Custom tokens JSON file not found at {custom_tokens_json}. Using an empty list instead.")
         custom_tokens = []
 
     create_and_save_tokenizer(custom_tokens=custom_tokens)
+    
