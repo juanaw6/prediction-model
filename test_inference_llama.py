@@ -5,6 +5,7 @@ from transformers import (
 )
 import torch
 from sklearn.metrics import classification_report
+from tqdm import tqdm
 
 model_path = "./results/llama_small/final_model"
 tokenizer = AutoTokenizer.from_pretrained("./custom-tokenizer")
@@ -20,7 +21,7 @@ actual_targets = df["target"].tolist()
 
 def predict_next_tokens(input_sequences):
     predictions = []
-    for input_text in input_sequences:
+    for input_text in tqdm(input_sequences, desc="Processing", unit="sample"):
         inputs = tokenizer(input_text, return_tensors="pt").to(loaded_device)
         with torch.no_grad():
             outputs = loaded_model(**inputs)
@@ -30,7 +31,6 @@ def predict_next_tokens(input_sequences):
             predicted = tokenizer.decode(predicted_token_id, skip_special_tokens=True)
 
         predictions.append(predicted)
-        # print(f"Input: {input_text} | Predicted: {predicted}")
 
     return predictions
 

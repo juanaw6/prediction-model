@@ -23,16 +23,19 @@ tokenizer = AutoTokenizer.from_pretrained("./custom-tokenizer")
 
 config = LlamaConfig(
     vocab_size=len(tokenizer),
+    max_position_embeddings=64,
     hidden_size=768,
-    intermediate_size=2073,
+    intermediate_size=2176,
     num_hidden_layers=8,
     num_attention_heads=12,
     rms_norm_eps=1e-06,
-    use_cache=False,
+    use_cache=True,
+    attention_dropout=0.1,
+    hidden_dropout=0.1,
     pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
     bos_token_id = tokenizer.bos_token_id,
     eos_token_id = tokenizer.eos_token_id,
-    tie_word_embeddings=False
+    tie_word_embeddings=True
 )
 
 

@@ -1,4 +1,5 @@
 import pandas as pd
+from tqdm import tqdm
 from transformers import (
     PreTrainedTokenizerFast,
     GPT2LMHeadModel
@@ -24,7 +25,7 @@ actual_targets = df["target"].tolist()
 
 def predict_next_tokens(input_sequences):
     predictions = []
-    for input_text in input_sequences:
+    for input_text in tqdm(input_sequences, desc="Processing", unit="sample"):
 
         inputs = tokenizer.encode(input_text, return_tensors="pt").to(loaded_device)
         
