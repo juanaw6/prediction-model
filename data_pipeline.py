@@ -33,8 +33,8 @@ split_dataset_into_train_test(
     max_samples=None,
     # windowed=False,
     windowed=True,
-    train_window_step=1,
-    test_window_step=1
+    train_window_step=36,
+    test_window_step=10
 )
 
 create_custom_tokenizer(custom_tokens_json="custom_tokens.json")

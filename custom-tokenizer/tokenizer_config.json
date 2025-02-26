@@ -33,7 +33,7 @@
       "special": true
     },
     "4": {
-      "content": "<UP_1>",
+      "content": "<UP_2>",
       "lstrip": false,
       "normalized": true,
       "rstrip": false,
@@ -41,30 +41,6 @@
       "special": false
     },
     "5": {
-      "content": "<DOWN_4>",
-      "lstrip": false,
-      "normalized": true,
-      "rstrip": false,
-      "single_word": false,
-      "special": false
-    },
-    "6": {
-      "content": "<DOWN_3>",
-      "lstrip": false,
-      "normalized": true,
-      "rstrip": false,
-      "single_word": false,
-      "special": false
-    },
-    "7": {
-      "content": "<DOWN_2>",
-      "lstrip": false,
-      "normalized": true,
-      "rstrip": false,
-      "single_word": false,
-      "special": false
-    },
-    "8": {
       "content": "<UP_3>",
       "lstrip": false,
       "normalized": true,
@@ -72,15 +48,15 @@
       "single_word": false,
       "special": false
     },
-    "9": {
-      "content": "<NEUTRAL>",
+    "6": {
+      "content": "<UP_1>",
       "lstrip": false,
       "normalized": true,
       "rstrip": false,
       "single_word": false,
       "special": false
     },
-    "10": {
+    "7": {
       "content": "<DOWN_1>",
       "lstrip": false,
       "normalized": true,
@@ -88,8 +64,32 @@
       "single_word": false,
       "special": false
     },
+    "8": {
+      "content": "<NEUTRAL>",
+      "lstrip": false,
+      "normalized": true,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "9": {
+      "content": "<DOWN_3>",
+      "lstrip": false,
+      "normalized": true,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "10": {
+      "content": "<DOWN_4>",
+      "lstrip": false,
+      "normalized": true,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
     "11": {
-      "content": "<UP_2>",
+      "content": "<DOWN_2>",
       "lstrip": false,
       "normalized": true,
       "rstrip": false,
