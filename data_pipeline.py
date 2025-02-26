@@ -1,4 +1,4 @@
-from utils.csv_to_token_converter import convert_csv_to_tokens
+from utils.csv_to_token_converter import convert_csv_to_tokens, convert_csv_to_tokens_more_bins
 from utils.token_counter import count_tokens_in_file
 from utils.dataset_splitter import split_dataset_into_train_test
 from utils.token_extractor import extract_tokens_to_json
@@ -12,12 +12,10 @@ output_lined_token_file = "./data/train/sol_lined_tokens.txt"
 custom_tokens_json_path = "custom_tokens.json"
 test_dataset_csv_path = "./data/test/test_dataset.csv"
 
-convert_csv_to_tokens(
+convert_csv_to_tokens_more_bins(
     input_csv_path=input_csv_path,
-    output_txt_path=output_token_sequence_file,
-    num_classes=5
+    output_txt_path=output_token_sequence_file
 )
-
 
 extract_tokens_to_json(
     token_sequence_path=output_token_sequence_file,
@@ -35,7 +33,7 @@ split_dataset_into_train_test(
     max_samples=None,
     # windowed=False,
     windowed=True,
-    train_window_step=5,
+    train_window_step=1,
     test_window_step=1
 )
 
