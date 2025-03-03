@@ -1,16 +1,15 @@
 import numpy as np
 import pandas as pd
 import time
-from collections import defaultdict
 
-class Range:
+class Range():
     def __init__(self, minimum, val, maximum):
         self.min = minimum
         self.val = val
         self.max = maximum
 
     def __repr__(self):
-        return f"Range({self.min:.4f}, {self.val:.4f}, {self.max:.4f})"
+        return f"Range({self.min}, {self.val}, {self.max})"
 
     def overlaps_with(self, other):
         return not (self.max < other.min or self.min > other.max)
@@ -22,7 +21,7 @@ class Range:
         else:
             return Range(other.min, other.val, midpoint), Range(midpoint, self.val, self.max)
 
-class BadCharRangeTable:
+class BadCharRangeTable():
     def __init__(self):
         self.ranges = []
         self.last_occurrence = {}
@@ -31,9 +30,10 @@ class BadCharRangeTable:
         self.ranges = []
         self.last_occurrence = {}
         for i, char in enumerate(pattern):
-            min_val = char - tolerance
-            max_val = char + tolerance
-            self.ranges.append(Range(min_val, char, max_val))
+            if char not in self.last_occurrence:
+                min_val = char - tolerance
+                max_val = char + tolerance
+                self.ranges.append(Range(min_val, char, max_val))
             self.last_occurrence[char] = i
         self.split_all_overlapping_ranges()
 
@@ -41,20 +41,14 @@ class BadCharRangeTable:
         if not self.ranges:
             return
             
-        # Sort ranges by value for better overlap detection
         temp_ranges = [(idx, r) for idx, r in enumerate(self.ranges)]
         temp_ranges.sort(key=lambda x: x[1].val)
         
-        i = 0
-        while i < len(temp_ranges) - 1:
+        for i in range(len(temp_ranges) - 1):
             if temp_ranges[i][1].overlaps_with(temp_ranges[i+1][1]):
                 r1, r2 = temp_ranges[i][1].split(temp_ranges[i+1][1])
                 temp_ranges[i] = (temp_ranges[i][0], r1)
                 temp_ranges[i+1] = (temp_ranges[i+1][0], r2)
-                # Rescan from the beginning in case the split created new overlaps
-                i = 0
-            else:
-                i += 1
         
         for idx, r in temp_ranges:
             self.ranges[idx] = r
@@ -65,35 +59,58 @@ class BadCharRangeTable:
                 return self.last_occurrence[range_.val]
         return default
 
-def compute_adaptive_tolerance(changes, window_size=100, factor=0.3):
-    """Calculate adaptive tolerance based on local volatility"""
-    if len(changes) <= window_size:
-        return np.std(changes) * factor
+def compute_tolerance(changes, factor=0.3, method="local"):
+    """
+    Compute tolerance for pattern matching with various methods.
     
-    tolerances = []
-    for i in range(0, len(changes), window_size//2):
-        window = changes[i:i+window_size]
-        if len(window) >= window_size//2:
-            tolerances.append(np.std(window) * factor)
+    Methods:
+    - 'standard': Uses standard deviation with a fixed factor
+    - 'adaptive': Adjusts factor based on pattern length
+    - 'percentile': Uses percentile-based tolerance
+    - 'local': Calculates tolerance based on local volatility
+    - 'hybrid': Combines multiple methods
+    """
+    if len(changes) == 0:
+        return 0.1
     
-    return np.mean(tolerances)
+    if method == "standard":
+        std_dev = np.std(changes)
+        return std_dev * factor
+    
+    elif method == "adaptive":
+        std_dev = np.std(changes)
+        adaptive_factor = factor * (0.8 + 0.2 * min(len(changes) / 50, 1.0))
+        return std_dev * adaptive_factor
+    
+    elif method == "percentile":
+        q75, q25 = np.percentile(changes, [75, 25])
+        iqr = q75 - q25
+        return iqr * factor * 0.5
+    
+    elif method == "local":
+        rolling_window = min(20, len(changes) // 3)
+        if rolling_window < 2:
+            return np.std(changes) * factor
+            
+        volatilities = []
+        for i in range(len(changes) - rolling_window + 1):
+            window = changes[i:i+rolling_window]
+            volatilities.append(np.std(window))
 
-def rolling_zscore(series, window=20):
-    """Calculate rolling z-scores to normalize the changes"""
-    rolling_mean = pd.Series(series).rolling(window=window).mean()
-    rolling_std = pd.Series(series).rolling(window=window).std()
+        return np.mean(volatilities) * factor
     
-    # Handle first window elements
-    rolling_mean.iloc[:window-1] = rolling_mean.iloc[window-1]
-    rolling_std.iloc[:window-1] = rolling_std.iloc[window-1]
-    
-    # Avoid division by zero
-    rolling_std = rolling_std.replace(0, np.mean(rolling_std[rolling_std > 0]))
-    
-    z_scores = (series - rolling_mean) / rolling_std
-    return z_scores.tolist()
+    elif method == "hybrid":
+        std_dev = np.std(changes)
+        q75, q25 = np.percentile(changes, [75, 25])
+        iqr = q75 - q25
 
-def pattern_matching_with_tolerance(text, pattern, tolerance, min_confidence=0.7):
+        return max(std_dev * factor, iqr * factor * 0.5)
+    
+    else:
+        std_dev = np.std(changes)
+        return std_dev * factor
+
+def pattern_matching_with_tolerance(text, pattern, dynamic_tolerance):
     m = len(pattern)
     n = len(text)
     
@@ -101,122 +118,76 @@ def pattern_matching_with_tolerance(text, pattern, tolerance, min_confidence=0.7
         return []
     
     bad_char_table = BadCharRangeTable()
-    bad_char_table.generate(pattern, tolerance)
+    bad_char_table.generate(pattern, dynamic_tolerance)
     
     s = 0
     matches = []
     
     while s <= n - m:
         j = m - 1
-        match_count = 0
         
         while j >= 0:
-            if abs(text[s + j] - pattern[j]) <= tolerance:
-                match_count += 1
+            if abs(text[s + j] - pattern[j]) > dynamic_tolerance:
+                break
             j -= 1
-        
-        # Calculate match confidence
-        confidence = match_count / m
-        if confidence >= min_confidence:
-            matches.append((s, confidence))
-            s += 1
+                
+        if j < 0:
+            matches.append(s)
+            s += 1 
         else:
-            # Use the bad character heuristic for faster skipping
-            s += max(1, m // 4)  # More aggressive skip for efficiency
+            bad_char_index = bad_char_table.get(text[s + j], default=-1)
+            s += max(1, j - bad_char_index)
 
     return matches
 
-class PatternFound:
-    def __init__(self, pattern, idx_found, confidences, score, next_values):
+class PatternFound():
+    __slots__ = ['pattern', 'idx_found', 'score']
+    
+    def __init__(self, pattern, idx_found, score):
         self.pattern = pattern
         self.idx_found = idx_found
-        self.confidences = confidences
         self.score = score
-        self.next_values = next_values
-        self.pattern_length = len(pattern)
     
     def __repr__(self):
-        avg_confidence = sum(self.confidences) / len(self.confidences) if self.confidences else 0
         return (
-            f"\n[DEBUG] Pattern (len: {self.pattern_length}) found at {len(self.idx_found)} locations\n"
-            f"[DEBUG] Average match confidence: {avg_confidence:.2f}\n"
-            f"[DEBUG] Score: {self.score}\n"
-            f"[DEBUG] Next values prediction: {'UP' if self.score > 0 else 'DOWN'}, strength: {abs(self.score)}"
-        )
+                f"\n[FOUND] Pattern (len: {len(self.pattern)}) found at index {self.idx_found}\n"
+                f"[FOUND] Score: {self.score}\n")
         
-class Result:
+class Result():
+    __slots__ = ['total_score', 'patterns_found']
+    
     def __init__(self, total_score, patterns_found):
         self.total_score = total_score
         self.patterns_found = patterns_found
-        self.patterns_found.sort(key=lambda x: abs(x.score), reverse=True)  # Sort by score magnitude
 
-def calculate_significance(pattern_length, occurrences, total_length):
-    """Calculate pattern significance based on length and frequency"""
-    return (pattern_length * occurrences) / (total_length * 0.1)
-
-def calculate_score(changes, normalize=True):
-    if normalize:
-        # Normalize the changes using rolling z-scores
-        changes = rolling_zscore(changes)
-    
-    dynamic_tolerance = compute_adaptive_tolerance(changes)
+def calculate_score(changes):
+    dynamic_tolerance = compute_tolerance(changes)
     
     n = len(changes)
-    # Increase min_length for more meaningful patterns
-    min_length = 5  # Minimum pattern length
-    max_length = min(50, n // 3)  # Maximum pattern length
-    
+    min_length = 3
     patterns = []
-    # Evaluate patterns of different lengths
-    for length in range(min_length, max_length + 1, 2):
-        for i in range(0, n - length + 1, length // 2):
-            patterns.append((i, changes[i:i+length]))
+    
+    for i in range(n - min_length, -1, -1):
+        if n - i <= n // 2:
+            patterns.append((i, changes[i:]))
     
     matched = []
     total_score = 0
-    pattern_cache = {}  # Cache to avoid recomputing the same patterns
 
     for start_idx, pattern in patterns:
-        # Create a hash of the pattern to avoid duplicate computations
-        pattern_key = tuple(np.round(pattern, 3))
-        
-        if pattern_key in pattern_cache:
-            continue
-        pattern_cache[pattern_key] = True
-        
         result = pattern_matching_with_tolerance(changes, pattern, dynamic_tolerance)
+        idx_found = [idx for idx in result if idx + len(pattern) < n and idx != start_idx]
         
-        # Filter out the pattern's own start position and ensure there's space for a next value
-        valid_matches = [(idx, conf) for idx, conf in result 
-                         if idx != start_idx and idx + len(pattern) < n]
-        
-        if len(valid_matches) < 2:  # Need at least 2 matches to be significant
+        if not idx_found:
             continue
-        
-        idx_found = [idx for idx, _ in valid_matches]
-        confidences = [conf for _, conf in valid_matches]
         
         next_indices = [idx + len(pattern) for idx in idx_found]
-        next_values = [changes[idx] for idx in next_indices if idx < n]
+        next_values = [changes[idx] for idx in next_indices]
+        score = sum(1 if val > 0 else -1 for val in next_values)
         
-        if not next_values:
-            continue
-            
-        # Calculate a weighted score based on next values and match quality
-        weighted_next_values = [next_val * conf for next_val, conf in zip(next_values, confidences)]
-        score = sum(weighted_next_values)
-        
-        # Add significance factor based on pattern length and frequency
-        significance = calculate_significance(len(pattern), len(idx_found), n)
-        adjusted_score = score * significance
-        
-        pattern_result = PatternFound(pattern, idx_found, confidences, adjusted_score, next_values)
-        matched.append(pattern_result)
-        total_score += adjusted_score
+        matched.append(PatternFound(pattern, idx_found, score))
+        total_score += score
 
-    # Filter out low significance patterns
-    matched = [p for p in matched if abs(p.score) > 1.0]
-    
     return Result(total_score, matched)
 
 if __name__ == "__main__":
@@ -224,7 +195,7 @@ if __name__ == "__main__":
     df = pd.read_csv(csv_file_path)
     
     df['change'] = ((df['close'] - df['open']) / df["open"]) * 100
-    changes = df['change'].values[:1000].tolist()
+    changes = df['change'].values[:5000].tolist()
 
     print("[DEBUG] Start")
     start_time = time.time()
@@ -232,13 +203,10 @@ if __name__ == "__main__":
     duration = time.time() - start_time
     print(f"[DEBUG] Duration: {duration * 1000:.4f} ms")
 
-    tolerance = compute_adaptive_tolerance(changes)
-    print("[DEBUG] Adaptive Tolerance:", tolerance)
-    print(f"[DEBUG] Found {len(result.patterns_found)} significant patterns")
+    tolerance = compute_tolerance(changes)
+    print("[DEBUG] Tolerance:", tolerance)
 
-    # Show top 10 patterns by score magnitude
-    for i, pattern_found in enumerate(result.patterns_found[:10]):
-        print(f"[PATTERN {i+1}]{pattern_found}")
+    for pattern_found in result.patterns_found:
+        print(pattern_found)
 
     print(f"[DEBUG] Total Score: {result.total_score}")
-    print(f"[DEBUG] Prediction: {'BULLISH' if result.total_score > 0 else 'BEARISH'}, Strength: {abs(result.total_score):.2f}")
