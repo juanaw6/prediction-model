@@ -1,4 +1,4 @@
-from matcher_model import calculate_score
+from matcher_model_fast import calculate_score
 import pandas as pd
 from tqdm import tqdm
 
@@ -51,4 +51,4 @@ class Backtest():
 if __name__ == "__main__":
     data = "./data/raw/solusdt_5m_2024_2025.csv"
     bt = Backtest(data)
-    bt.run(num_example=300, data_len=3000)
+    bt.run(num_example=300, data_len=5000)
