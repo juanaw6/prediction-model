@@ -93,6 +93,26 @@ def pattern_matching_with_tolerance(text, pattern, dynamic_tolerance):
 
     return matches
 
+class PatternFound():
+    __slots__ = ['pattern', 'idx_found', 'score']
+    
+    def __init__(self, pattern, idx_found, score):
+        self.pattern = pattern
+        self.idx_found = idx_found
+        self.score = score
+    
+    def __repr__(self):
+        return (
+                f"\n[FOUND] Pattern (len: {len(self.pattern)}) found at index {self.idx_found}\n"
+                f"[FOUND] Score: {self.score}\n")
+        
+class Result():
+    __slots__ = ['total_score', 'patterns_found']
+    
+    def __init__(self, total_score, patterns_found):
+        self.total_score = total_score
+        self.patterns_found = patterns_found
+
 def calculate_score(changes):
     dynamic_tolerance = compute_tolerance(changes)
     
@@ -123,28 +143,12 @@ def calculate_score(changes):
 
     return Result(total_score, matched)
 
-class PatternFound():
-    def __init__(self, pattern, idx_found, score):
-        self.pattern = pattern
-        self.idx_found = idx_found
-        self.score = score
-    
-    def __repr__(self):
-        return (
-                f"\n[DEBUG] Pattern (len: {len(self.pattern)}) found at index {self.idx_found}\n"
-                f"[DEBUG] Score: {self.score}\n")
-        
-class Result():
-    def __init__(self, total_score, patterns_found):
-        self.total_score = total_score
-        self.patterns_found = patterns_found
-
 if __name__ == "__main__":
     csv_file_path = "./data/raw/solusdt_5m_2024_2025.csv"
     df = pd.read_csv(csv_file_path)
     
     df['change'] = ((df['close'] - df['open']) / df["open"]) * 100
-    changes = df['change'].values[:3000].tolist()
+    changes = df['change'].values[:5000].tolist()
 
     print("[DEBUG] Start")
     start_time = time.time()

@@ -114,8 +114,8 @@ class PatternFound():
     
     def __repr__(self):
         return (
-                f"\n[DEBUG] Pattern (len: {len(self.pattern)}) found at index {self.idx_found}\n"
-                f"[DEBUG] Score: {self.score}\n")
+                f"\n[FOUND] Pattern (len: {len(self.pattern)}) found at index {self.idx_found}\n"
+                f"[FOUND] Score: {self.score}\n")
         
 class Result():
     __slots__ = ['total_score', 'patterns_found']
