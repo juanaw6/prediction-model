@@ -1,5 +1,5 @@
 import numpy as np
-from matcher_model import calculate_score
+from matcher_model_2 import calculate_score
 import pandas as pd
 from tqdm import tqdm
 
@@ -39,11 +39,9 @@ class Backtest():
             target_signed = 1 if example.target > 0 else -1
             if action == target_signed:
                 correct_pred += 1
-                if abs(result.total_score) >= 2:
-                    cumm_pnl += abs(example.target)
+                cumm_pnl += abs(example.target)
             else:
-                if abs(result.total_score) >= 2:
-                    cumm_pnl -= abs(example.target)
+                cumm_pnl -= abs(example.target)
         #     scores.append(abs(result.total_score))
         
         # print(f"Average score: {np.mean(scores)}")
@@ -66,20 +64,20 @@ class Backtest():
         }
             
 if __name__ == "__main__":
-    data = "./data/raw/solusdt_5m_2021_2025.csv"
+    data = "./data/raw/solusdt_15m_2024_2025.csv"
     
     results = []
     
-    data_lengths = [100]
+    data_lengths = [3000]
 
-    example_counts = [1000, 3000, 5000, 7000, 9000, 10000]
+    example_counts = [10000]
     
     for data_len in data_lengths:
         for num_example in example_counts:
-                print(f"\n[DEBUG] Running with data_len={data_len}, num_example={num_example}")
-                bt = Backtest(data)
-                result = bt.run(num_example=num_example, data_len=data_len)
-                results.append(result)
+            print(f"\n[DEBUG] Running with data_len={data_len}, num_example={num_example}")
+            bt = Backtest(data)
+            result = bt.run(num_example=num_example, data_len=data_len)
+            results.append(result)
     
     results_df = pd.DataFrame(results)
     

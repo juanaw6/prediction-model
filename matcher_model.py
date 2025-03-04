@@ -119,10 +119,14 @@ def calculate_score(changes):
     n = len(changes)
     min_length = 3
     patterns = []
+    max_pattern = 10
+    num_patterns = 0
     
     for i in range(n - min_length, -1, -1):
-        if n - i <= n // 2:
-            patterns.append((i, changes[i:]))
+        patterns.append((i, changes[i:]))
+        num_patterns += 1
+        if (num_patterns) >= max_pattern:
+            break
     
     matched = []
     total_score = 0

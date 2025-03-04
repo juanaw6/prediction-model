@@ -59,56 +59,9 @@ class BadCharRangeTable():
                 return self.last_occurrence[range_.val]
         return default
 
-def compute_tolerance(changes, factor=0.3, method="local"):
-    """
-    Compute tolerance for pattern matching with various methods.
-    
-    Methods:
-    - 'standard': Uses standard deviation with a fixed factor
-    - 'adaptive': Adjusts factor based on pattern length
-    - 'percentile': Uses percentile-based tolerance
-    - 'local': Calculates tolerance based on local volatility
-    - 'hybrid': Combines multiple methods
-    """
-    if len(changes) == 0:
-        return 0.1
-    
-    if method == "standard":
-        std_dev = np.std(changes)
-        return std_dev * factor
-    
-    elif method == "adaptive":
-        std_dev = np.std(changes)
-        adaptive_factor = factor * (0.8 + 0.2 * min(len(changes) / 50, 1.0))
-        return std_dev * adaptive_factor
-    
-    elif method == "percentile":
-        q75, q25 = np.percentile(changes, [75, 25])
-        iqr = q75 - q25
-        return iqr * factor * 0.5
-    
-    elif method == "local":
-        rolling_window = min(20, len(changes) // 3)
-        if rolling_window < 2:
-            return np.std(changes) * factor
-            
-        volatilities = []
-        for i in range(len(changes) - rolling_window + 1):
-            window = changes[i:i+rolling_window]
-            volatilities.append(np.std(window))
-
-        return np.mean(volatilities) * factor
-    
-    elif method == "hybrid":
-        std_dev = np.std(changes)
-        q75, q25 = np.percentile(changes, [75, 25])
-        iqr = q75 - q25
-
-        return max(std_dev * factor, iqr * factor * 0.5)
-    
-    else:
-        std_dev = np.std(changes)
-        return std_dev * factor
+def compute_tolerance(changes, factor=0.3):
+    std_dev = np.std(changes)
+    return std_dev * factor
 
 def pattern_matching_with_tolerance(text, pattern, dynamic_tolerance):
     m = len(pattern)
@@ -166,10 +119,14 @@ def calculate_score(changes):
     n = len(changes)
     min_length = 3
     patterns = []
+    max_pattern = 10
+    num_patterns = 0
     
     for i in range(n - min_length, -1, -1):
-        if n - i <= n // 2:
-            patterns.append((i, changes[i:]))
+        patterns.append((i, changes[i:]))
+        num_patterns += 1
+        if (num_patterns) >= max_pattern:
+            break
     
     matched = []
     total_score = 0
@@ -181,9 +138,11 @@ def calculate_score(changes):
         if not idx_found:
             continue
         
+        factor = np.std(pattern)
+        point = len(pattern)
         next_indices = [idx + len(pattern) for idx in idx_found]
         next_values = [changes[idx] for idx in next_indices]
-        score = sum(1 if val > 0 else -1 for val in next_values)
+        score = sum(1 if val > 0 else -1 for val in next_values) * (point + 1/factor)
         
         matched.append(PatternFound(pattern, idx_found, score))
         total_score += score
@@ -195,7 +154,7 @@ if __name__ == "__main__":
     df = pd.read_csv(csv_file_path)
     
     df['change'] = ((df['close'] - df['open']) / df["open"]) * 100
-    changes = df['change'].values[:5000].tolist()
+    changes = df['change'].values[:3000].tolist()
 
     print("[DEBUG] Start")
     start_time = time.time()

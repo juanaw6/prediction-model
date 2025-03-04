@@ -87,7 +87,7 @@ class BinanceDataFetcher:
             except Exception as e:
                 if attempt < max_retries - 1:
                     print(f"Error fetching data (attempt {attempt + 1}): {e}. Retrying...")
-                    time.sleep(1 * (attempt + 1))  # Exponential backoff
+                    time.sleep(1 * (attempt + 1))
                 else:
                     print(f"Failed to fetch data after {max_retries} attempts: {e}")
                     return []
