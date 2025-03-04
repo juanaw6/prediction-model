@@ -86,10 +86,10 @@ class BinanceDataFetcher:
                 return klines
             except Exception as e:
                 if attempt < max_retries - 1:
-                    print(f"Error fetching data (attempt {attempt + 1}): {e}. Retrying...")
+                    print(f"[FETCHER] Error fetching data (attempt {attempt + 1}): {e}. Retrying...")
                     time.sleep(1 * (attempt + 1))
                 else:
-                    print(f"Failed to fetch data after {max_retries} attempts: {e}")
+                    print(f"[FETCHER] Failed to fetch data after {max_retries} attempts: {e}")
                     return []
 
     def _preprocess_data(self, candles: List[List]) -> pd.DataFrame:
@@ -125,7 +125,8 @@ class BinanceDataFetcher:
         start_date: str, 
         end_date: str, 
         output_file: str, 
-        futures: bool = True
+        futures: bool = True,
+        verbose: bool = True
     ) -> pd.DataFrame:
         """
         Fetches market data (Futures or Spot) and saves it as a CSV file.
@@ -165,18 +166,20 @@ class BinanceDataFetcher:
 
                 last_candle_time = new_candles[-1][0]
                 current_start = last_candle_time + self.interval_durations.get(interval, 60000)
-
-                print(f"Fetched up to: {pd.to_datetime(last_candle_time, unit='ms')}")
+                
+                if verbose:
+                    print(f"[FETCHER] Fetched up to: {pd.to_datetime(last_candle_time, unit='ms')}")
 
                 time.sleep(0.3)
             except Exception as e:
-                print(f"Error in data fetch: {e}")
+                print(f"[FETCHER] Error in data fetch: {e}")
                 break
             
         df = self._preprocess_data(candles)
 
         df.to_csv(output_file, index=False)
-        print(f"Data saved to {output_file}")
+        if verbose:
+            print(f"[FETCHER] Data saved to {output_file}")
 
         return df
 
@@ -186,7 +189,8 @@ class BinanceDataFetcher:
         interval: str, 
         start_date: str, 
         end_date: str, 
-        output_file: str
+        output_file: str,
+        verbose: bool = True
     ) -> pd.DataFrame:
         """
         Fetches Futures market data and saves it as a CSV file.
@@ -201,7 +205,7 @@ class BinanceDataFetcher:
         Returns:
             pd.DataFrame: A pandas DataFrame containing the fetched data.
         """
-        return self.fetch_data(symbol, interval, start_date, end_date, output_file, futures=True)
+        return self.fetch_data(symbol=symbol, interval=interval, start_date=start_date, end_date=end_date, output_file=output_file, futures=True, verbose=verbose)
 
     def fetch_spot_data(
         self, 
@@ -209,7 +213,8 @@ class BinanceDataFetcher:
         interval: str, 
         start_date: str, 
         end_date: str, 
-        output_file: str
+        output_file: str,
+        verbose: bool = True
     ) -> pd.DataFrame:
         """
         Fetches Spot market data and saves it as a CSV file.
@@ -224,7 +229,7 @@ class BinanceDataFetcher:
         Returns:
             pd.DataFrame: A pandas DataFrame containing the fetched data.
         """
-        return self.fetch_data(symbol, interval, start_date, end_date, output_file, futures=False)
+        return self.fetch_data(symbol=symbol, interval=interval, start_date=start_date, end_date=end_date, output_file=output_file, futures=False, verbose=verbose)
 
 # Example Usage
 # from apikey import api_key, api_secret
